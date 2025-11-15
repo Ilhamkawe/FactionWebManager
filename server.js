@@ -16,6 +16,16 @@ app.use(express.static('public'));
 // Priority: Environment variables > config.js > defaults
 let pool;
 try {
+    // Debug: Log all environment variables (for troubleshooting)
+    console.log('🔍 Environment variables check:');
+    console.log(`  DB_HOST: ${process.env.DB_HOST ? '✅ Set' : '❌ Not set'}`);
+    console.log(`  DB_PORT: ${process.env.DB_PORT ? '✅ Set' : '❌ Not set'}`);
+    console.log(`  DB_USER: ${process.env.DB_USER ? '✅ Set' : '❌ Not set'}`);
+    console.log(`  DB_PASSWORD: ${process.env.DB_PASSWORD ? '✅ Set (hidden)' : '❌ Not set'}`);
+    console.log(`  DB_NAME: ${process.env.DB_NAME ? '✅ Set' : '❌ Not set'}`);
+    console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
+    console.log(`  VERCEL: ${process.env.VERCEL ? '✅ Yes' : '❌ No'}`);
+    
     let config;
     
     // PRIORITY 1: Use environment variables if available (for Vercel/production)
@@ -37,14 +47,30 @@ try {
             console.log('✅ Loaded config from config.js');
             
             // Override with environment variables if they exist (even if config.js exists)
-            if (process.env.DB_HOST) config.database.host = process.env.DB_HOST;
-            if (process.env.DB_PORT) config.database.port = parseInt(process.env.DB_PORT);
-            if (process.env.DB_USER) config.database.user = process.env.DB_USER;
-            if (process.env.DB_PASSWORD !== undefined) config.database.password = process.env.DB_PASSWORD;
-            if (process.env.DB_NAME) config.database.database = process.env.DB_NAME;
+            if (process.env.DB_HOST) {
+                console.log(`  Overriding host with DB_HOST: ${process.env.DB_HOST}`);
+                config.database.host = process.env.DB_HOST;
+            }
+            if (process.env.DB_PORT) {
+                console.log(`  Overriding port with DB_PORT: ${process.env.DB_PORT}`);
+                config.database.port = parseInt(process.env.DB_PORT);
+            }
+            if (process.env.DB_USER) {
+                console.log(`  Overriding user with DB_USER: ${process.env.DB_USER}`);
+                config.database.user = process.env.DB_USER;
+            }
+            if (process.env.DB_PASSWORD !== undefined) {
+                console.log('  Overriding password with DB_PASSWORD');
+                config.database.password = process.env.DB_PASSWORD;
+            }
+            if (process.env.DB_NAME) {
+                console.log(`  Overriding database with DB_NAME: ${process.env.DB_NAME}`);
+                config.database.database = process.env.DB_NAME;
+            }
         } catch (e) {
             // PRIORITY 3: Fallback to defaults (should not happen in production)
             console.warn('⚠️ config.js not found and no environment variables set, using defaults');
+            console.warn('⚠️ THIS SHOULD NOT HAPPEN IN PRODUCTION! Please set environment variables.');
             config = {
                 database: {
                     host: process.env.DB_HOST || 'localhost',
@@ -66,8 +92,13 @@ try {
         throw new Error('Database configuration is incomplete. Please set environment variables (DB_HOST, DB_USER, DB_NAME) or check config.js');
     }
 
-    // Log database host (but not credentials) for debugging
-    console.log(`📊 Database config: host=${config.database.host}, port=${config.database.port}, database=${config.database.database}, user=${config.database.user}`);
+    // Log database config (but not password) for debugging
+    console.log('📊 Final database configuration:');
+    console.log(`  Host: ${config.database.host}`);
+    console.log(`  Port: ${config.database.port}`);
+    console.log(`  User: ${config.database.user}`);
+    console.log(`  Database: ${config.database.database}`);
+    console.log(`  Password: ${config.database.password ? '✅ Set (hidden)' : '❌ Not set'}`);
 
     const poolConfig = {
         host: config.database.host,
