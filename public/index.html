@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faction Manager - FactionSystem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#667eea',
+                        secondary: '#764ba2',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- Header -->
+        <header class="mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Faction Manager</h1>
+            <p class="text-gray-600">Manage factions and view leaderboard</p>
+        </header>
+
+        <!-- Stats Bar -->
+        <div id="statsBar" class="bg-white rounded-lg shadow-sm p-4 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="col-span-full text-center text-gray-500">Loading statistics...</div>
+        </div>
+        
+        <!-- Error/Success Messages -->
+        <div id="messageArea" class="mb-4"></div>
+
+        <!-- Tabs -->
+        <div class="mb-6">
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-8">
+                    <button onclick="showTab('factions')" id="tab-factions" class="tab-button py-4 px-1 border-b-2 font-medium text-sm text-primary border-primary">
+                        Factions
+                    </button>
+                    <button onclick="showTab('leaderboard')" id="tab-leaderboard" class="tab-button py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">
+                        Leaderboard
+                    </button>
+                    <button onclick="showTab('playerstats')" id="tab-playerstats" class="tab-button py-4 px-1 border-b-2 font-medium text-sm text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300">
+                        Player Stats
+                    </button>
+                </nav>
+            </div>
+        </div>
+
+        <!-- Factions Tab -->
+        <div id="tab-content-factions" class="tab-content">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800">All Factions</h2>
+                <button onclick="showAddFactionModal()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition">
+                    ➕ Add Faction
+                </button>
+            </div>
+
+            <div id="factionList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Factions will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Leaderboard Tab -->
+        <div id="tab-content-leaderboard" class="tab-content hidden">
+            <div class="mb-4">
+                <h2 class="text-2xl font-semibold text-gray-800">Leaderboard</h2>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rank</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Faction</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tier</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Points</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Members</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Leaderboard will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Player Stats Tab -->
+        <div id="tab-content-playerstats" class="tab-content hidden">
+            <div class="mb-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-2xl font-semibold text-gray-800">Player Statistics</h2>
+                    <div class="flex items-center space-x-4">
+                        <input type="text" id="playerStatsSearch" placeholder="Search by name or SteamID..." 
+                               class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                               onkeyup="handlePlayerStatsSearch(event)">
+                        <select id="playerStatsSortBy" onchange="loadPlayerStats()" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="Kills">Sort by Kills</option>
+                            <option value="Headshots">Sort by Headshots</option>
+                            <option value="Zombies">Sort by Zombies</option>
+                            <option value="MegaZombies">Sort by Mega Zombies</option>
+                            <option value="Animals">Sort by Animals</option>
+                            <option value="Resources">Sort by Resources</option>
+                            <option value="Harvests">Sort by Harvests</option>
+                            <option value="Fish">Sort by Fish</option>
+                            <option value="Structures">Sort by Structures</option>
+                            <option value="Barricades">Sort by Barricades</option>
+                            <option value="Playtime">Sort by Playtime</option>
+                            <option value="PVPDeaths">Sort by PVP Deaths</option>
+                            <option value="PVEDeaths">Sort by PVE Deaths</option>
+                        </select>
+                        <select id="playerStatsSortOrder" onchange="loadPlayerStats()" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                            <option value="desc">Descending</option>
+                            <option value="asc">Ascending</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Name')">
+                                    Player Name
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Kills')">
+                                    Kills
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Headshots')">
+                                    Headshots
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Zombies')">
+                                    Zombies
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('MegaZombies')">
+                                    Mega Zombies
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Animals')">
+                                    Animals
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Resources')">
+                                    Resources
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onclick="sortPlayerStats('Playtime')">
+                                    Playtime
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="playerStatsBody" class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td colspan="9" class="px-6 py-4 text-center text-gray-500">Loading player stats...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div id="playerStatsPagination" class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between items-center">
+                    <!-- Pagination will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Faction Modal -->
+    <div id="factionModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="modalTitle" class="text-2xl font-bold text-gray-800">Add New Faction</h3>
+                    <button onclick="closeFactionModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+
+                <form id="factionForm" onsubmit="saveFaction(event)">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Faction ID *</label>
+                            <input type="text" id="factionId" required pattern="[a-z0-9-]+" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="e.g., alpha">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                            <input type="text" id="factionName" required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="e.g., Alpha Faction">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tag</label>
+                                <input type="text" id="factionTag" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="e.g., ALPHA">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Owner ID (Steam64) *</label>
+                                <input type="number" id="ownerId" required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="e.g., 76561198000000000">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Prefix</label>
+                                <input type="text" id="factionPrefix" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="e.g., [ALPHA]">
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Suffix</label>
+                                <input type="text" id="factionSuffix" 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                       placeholder="e.g., [LEGEND]">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Chat Color</label>
+                            <input type="text" id="chatColor" 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                   placeholder="e.g., cyan, #FF5733, rgb(255,87,51)" value="cyan">
+                            <p class="text-xs text-gray-500 mt-1">Supports: color names, hex (#RRGGBB), or rgb(r,g,b)</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex justify-end space-x-3">
+                        <button type="button" onclick="closeFactionModal()" 
+                                class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                            Save Faction
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Faction Details Modal -->
+    <div id="factionDetailsModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="detailsModalTitle" class="text-2xl font-bold text-gray-800">Faction Details</h3>
+                    <button onclick="closeFactionDetailsModal()" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+
+                <div id="factionDetailsContent">
+                    <!-- Content will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="hidden fixed bottom-4 right-4 bg-white rounded-lg shadow-lg p-4 border-l-4 border-green-500 z-50 max-w-sm">
+        <div class="flex items-center">
+            <span id="toastMessage" class="text-gray-800"></span>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
+
