@@ -13,6 +13,57 @@ Password: ***
 
 Berarti environment variables sudah terdeteksi dengan benar! ✅
 
+## ❌ Error: ECONNRESET (Connection Reset)
+
+Jika muncul error:
+```
+❌ Database connection failed!
+Error message: write ECONNRESET
+Error code: ECONNRESET
+```
+
+**Ini berarti koneksi database terputus setelah terhubung.**
+
+### Penyebab:
+1. **Database server memutuskan koneksi secara tiba-tiba**
+2. **Network instability**
+3. **Database server overload**
+4. **Connection timeout di tengah operasi**
+5. **Firewall/proxy memutuskan koneksi idle**
+
+### Solusi:
+
+#### 1. Cek Database Server Status
+- Pastikan database server tidak overload
+- Cek log database untuk error
+- Pastikan `max_connections` cukup tinggi
+
+#### 2. Cek Network Stability
+- Test koneksi dari Vercel ke database server
+- Pastikan tidak ada firewall yang memutuskan koneksi idle
+- Cek apakah ada proxy yang mengganggu
+
+#### 3. Cek MySQL Configuration
+```sql
+SHOW VARIABLES LIKE 'wait_timeout';
+SHOW VARIABLES LIKE 'interactive_timeout';
+SHOW VARIABLES LIKE 'max_connections';
+```
+- Pastikan `wait_timeout` dan `interactive_timeout` cukup tinggi (minimal 28800 detik = 8 jam)
+- Pastikan `max_connections` cukup untuk semua aplikasi
+
+#### 4. Test Connection
+```bash
+mysql -h 49.128.184.34 -P 3406 -u u143_8Iv5ZNvRLS -p
+```
+
+#### 5. Jika Masih Error
+- Cek apakah `QuestWebManager` juga mengalami masalah yang sama
+- Jika `QuestWebManager` bekerja, bandingkan konfigurasi connection pool
+- Cek apakah ada perbedaan di kode yang menggunakan connection pool
+
+---
+
 ## ❌ Error: ETIMEDOUT (Connection Timeout)
 
 Jika muncul error:

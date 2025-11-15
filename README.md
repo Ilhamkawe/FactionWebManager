@@ -34,13 +34,30 @@ module.exports = {
 };
 ```
 
-**Atau** gunakan environment variables:
+**Atau** gunakan environment variables dengan file `.env`:
+
+1. Copy `.env.example` ke `.env`:
 ```bash
-export DB_HOST=localhost
-export DB_PORT=3306
-export DB_USER=root
-export DB_PASSWORD=password
-export DB_NAME=db_unturned
+cp .env.example .env
+```
+
+2. Edit `.env` dengan database credentials Anda (atau biarkan default jika sudah benar):
+```env
+DB_HOST=49.128.184.34
+DB_PORT=3406
+DB_USER=u143_8Iv5ZNvRLS
+DB_PASSWORD=uh14Qyd.I.pP@Frog^yLy7kR
+DB_NAME=s143_db_unturned
+PORT=3001
+```
+
+**Atau** set environment variables secara manual:
+```bash
+export DB_HOST=49.128.184.34
+export DB_PORT=3406
+export DB_USER=u143_8Iv5ZNvRLS
+export DB_PASSWORD=uh14Qyd.I.pP@Frog^yLy7kR
+export DB_NAME=s143_db_unturned
 ```
 
 4. Start server:
