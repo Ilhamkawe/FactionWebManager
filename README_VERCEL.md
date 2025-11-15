@@ -2,51 +2,50 @@
 
 ## Setup Environment Variables di Vercel
 
-**PENTING:** Environment variables HARUS di-set di Vercel sebelum deploy, atau aplikasi akan menggunakan localhost (default).
+**PENTING:** Environment variables HARUS di-set di Vercel sebelum deploy, atau aplikasi akan menggunakan default values.
 
-### Langkah-langkah:
+### Format Environment Variables
+
+Di Vercel Dashboard → Settings → Environment Variables, tambahkan variables berikut:
+
+| Key | Value | Environment |
+|-----|-------|-------------|
+| `DB_HOST` | `49.128.184.34` | ✅ Production (wajib) |
+| `DB_PORT` | `3406` | ✅ Production (wajib) |
+| `DB_USER` | `u143_8Iv5ZNvRLS` | ✅ Production (wajib) |
+| `DB_PASSWORD` | `uh14Qyd.I.pP@Frog^yLy7kR` | ✅ Production (wajib) |
+| `DB_NAME` | `s143_db_unturned` | ✅ Production (wajib) |
+
+### Langkah-langkah Input di Vercel:
 
 1. **Buka Vercel Dashboard**
    - Login ke https://vercel.com
-   - Pilih project FactionWebManager
+   - Pilih project **FactionWebManager**
 
 2. **Pergi ke Settings → Environment Variables**
-   - Klik tab "Environment Variables"
-   - Atau langsung: `https://vercel.com/[username]/[project]/settings/environment-variables`
+   - Klik tab "Environment Variables" di sidebar kiri
 
-3. **Tambahkan Environment Variables berikut:**
+3. **Tambahkan setiap variable:**
+   
+   Klik **"Add New"** dan isi:
+   
+   - **Key:** `DB_HOST`
+   - **Value:** `49.128.184.34`
+   - **Environment:** ✅ Production (wajib), ✅ Preview (opsional), ✅ Development (opsional)
+   - Klik **"Save"**
+   
+   Ulangi untuk:
+   - `DB_PORT` = `3406`
+   - `DB_USER` = `u143_8Iv5ZNvRLS`
+   - `DB_PASSWORD` = `uh14Qyd.I.pP@Frog^yLy7kR`
+   - `DB_NAME` = `s143_db_unturned`
 
-   Klik "Add New" untuk setiap variable:
-
-   | Variable Name | Value | Description |
-   |--------------|-------|-------------|
-   | `DB_HOST` | `49.128.184.34` | Database host IP/domain |
-   | `DB_PORT` | `3406` | Database port |
-   | `DB_USER` | `u143_8Iv5ZNvRLS` | Database username |
-   | `DB_PASSWORD` | `uh14Qyd.I.pP@Frog^yLy7kR` | Database password |
-   | `DB_NAME` | `s143_db_unturned` | Database name |
-
-   **Atau copy-paste langsung:**
-   ```
-   DB_HOST=49.128.184.34
-   DB_PORT=3406
-   DB_USER=u143_8Iv5ZNvRLS
-   DB_PASSWORD=uh14Qyd.I.pP@Frog^yLy7kR
-   DB_NAME=s143_db_unturned
-   ```
-
-4. **Pilih Environment:**
-   - ✅ **Production** (wajib)
-   - ✅ **Preview** (opsional, untuk preview deployments)
-   - ✅ **Development** (opsional, untuk local dev)
-
-5. **Save dan Redeploy:**
-   - Klik "Save"
-   - **PENTING:** Setelah menambahkan environment variables, **Redeploy** project:
-     - Klik tab "Deployments"
-     - Klik "..." pada deployment terbaru
-     - Pilih "Redeploy"
-     - Atau push commit baru ke git
+4. **Redeploy setelah menambahkan semua variables:**
+   - Klik tab **"Deployments"**
+   - Klik **"..."** pada deployment terbaru
+   - Pilih **"Redeploy"**
+   - **PENTING:** Uncheck "Use existing Build Cache"
+   - Klik **"Redeploy"**
 
 ## Verifikasi Environment Variables
 

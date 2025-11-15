@@ -23,13 +23,12 @@ const pool = mysql.createPool({
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,
-    enableKeepAlive: true,
-    keepAliveInitialDelay: 0,
     // IMPORTANT: For bigint unsigned, we need to return as string to preserve precision
     // JavaScript Number can only safely represent integers up to Number.MAX_SAFE_INTEGER (2^53-1)
     // SteamID (76561198152301292) exceeds this, so we need string representation
-    supportBigNumbers: true,
-    bigNumberStrings: true
+    // Temporarily disabled to match QuestWebManager config - can be re-enabled if needed
+    // supportBigNumbers: true,
+    // bigNumberStrings: true
 });
 
 // Test database connection
