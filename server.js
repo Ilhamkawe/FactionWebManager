@@ -13,24 +13,48 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // Database configuration
+// Priority: Environment variables > config.js > defaults
 let pool;
 try {
-    // Try to load config from config.js or use environment variables
     let config;
-    try {
-        config = require('./config.js');
-        console.log('✅ Loaded config from config.js');
-    } catch (e) {
-        console.warn('⚠️ config.js not found, using environment variables or defaults');
+    
+    // PRIORITY 1: Use environment variables if available (for Vercel/production)
+    if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
+        console.log('✅ Using environment variables for database configuration');
         config = {
             database: {
-                host: process.env.DB_HOST || 'localhost',
+                host: process.env.DB_HOST,
                 port: parseInt(process.env.DB_PORT) || 3306,
-                user: process.env.DB_USER || 'root',
+                user: process.env.DB_USER,
                 password: process.env.DB_PASSWORD || '',
-                database: process.env.DB_NAME || 'db_unturned'
+                database: process.env.DB_NAME
             }
         };
+    } else {
+        // PRIORITY 2: Try to load from config.js (for local development)
+        try {
+            config = require('./config.js');
+            console.log('✅ Loaded config from config.js');
+            
+            // Override with environment variables if they exist (even if config.js exists)
+            if (process.env.DB_HOST) config.database.host = process.env.DB_HOST;
+            if (process.env.DB_PORT) config.database.port = parseInt(process.env.DB_PORT);
+            if (process.env.DB_USER) config.database.user = process.env.DB_USER;
+            if (process.env.DB_PASSWORD !== undefined) config.database.password = process.env.DB_PASSWORD;
+            if (process.env.DB_NAME) config.database.database = process.env.DB_NAME;
+        } catch (e) {
+            // PRIORITY 3: Fallback to defaults (should not happen in production)
+            console.warn('⚠️ config.js not found and no environment variables set, using defaults');
+            config = {
+                database: {
+                    host: process.env.DB_HOST || 'localhost',
+                    port: parseInt(process.env.DB_PORT) || 3306,
+                    user: process.env.DB_USER || 'root',
+                    password: process.env.DB_PASSWORD || '',
+                    database: process.env.DB_NAME || 'db_unturned'
+                }
+            };
+        }
     }
     
     // Validate config
@@ -39,8 +63,11 @@ try {
     }
     
     if (!config.database.host || !config.database.user || !config.database.database) {
-        throw new Error('Database configuration is incomplete. Please check config.js');
+        throw new Error('Database configuration is incomplete. Please set environment variables (DB_HOST, DB_USER, DB_NAME) or check config.js');
     }
+
+    // Log database host (but not credentials) for debugging
+    console.log(`📊 Database config: host=${config.database.host}, port=${config.database.port}, database=${config.database.database}, user=${config.database.user}`);
 
     const poolConfig = {
         host: config.database.host,
@@ -1339,8 +1366,9 @@ app.get('/api/debug/schema', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`Faction Web Manager running on http://localhost:${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-    console.log(`Debug schema: http://localhost:${PORT}/api/debug/schema`);
+    const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
+    console.log(`Faction Web Manager running on ${host}`);
+    console.log(`Health check: ${host}/api/health`);
+    console.log(`Debug schema: ${host}/api/debug/schema`);
 });
 
