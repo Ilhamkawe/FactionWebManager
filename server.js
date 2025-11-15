@@ -5,12 +5,13 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
+// PORT is automatically set by Vercel, use 3001 only for local development
 const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Database connection pool
 // Uses environment variables with fallback to default values (same as QuestWebManager)
@@ -1234,9 +1235,30 @@ app.get('/api/debug/schema', async (req, res) => {
     }
 });
 
-// Start server
-app.listen(PORT, () => {
-    console.log(`🚀 Faction Web Manager running on http://localhost:${PORT}`);
-    console.log(`📊 Database: ${process.env.DB_NAME || 's143_db_unturned'}`);
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Serve frontend - must be after all API routes
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Catch-all route for SPA (must be last)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Start server (only for local development)
+// Vercel automatically handles the server, so app.listen is not needed in production
+if (process.env.VERCEL !== '1') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Faction Web Manager running on http://localhost:${PORT}`);
+        console.log(`📊 Database: ${process.env.DB_NAME || 's143_db_unturned'}`);
+    });
+}
+
+// Export app for Vercel serverless functions
+module.exports = app;
 

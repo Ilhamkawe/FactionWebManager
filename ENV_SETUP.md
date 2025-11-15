@@ -10,7 +10,8 @@ DB_PORT=3406
 DB_USER=u143_8Iv5ZNvRLS
 DB_PASSWORD=uh14Qyd.I.pP@Frog^yLy7kR
 DB_NAME=s143_db_unturned
-PORT=3001
+# PORT tidak perlu di-set - Vercel akan set otomatis
+# PORT=3001  # Hanya untuk local development (opsional)
 ```
 
 ## Cara Membuat File .env

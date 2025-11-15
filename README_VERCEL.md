@@ -1,5 +1,32 @@
 # Deploy FactionWebManager ke Vercel
 
+## ⚠️ Troubleshooting 404 Error
+
+Jika Anda mendapatkan error 404 setelah deploy:
+
+### 1. Pastikan Framework Preset di Vercel
+- Buka **Project Settings** → **General**
+- Pastikan **"Framework Preset"** adalah **"Other"** atau **"Node.js"**
+- **JANGAN** pilih Next.js, React, atau framework lain
+
+### 2. Pastikan Build & Development Settings
+- **Build Command:** (kosongkan atau biarkan default)
+- **Output Directory:** (kosongkan)
+- **Install Command:** `npm install`
+- **Development Command:** `npm run dev`
+
+### 3. Pastikan Root Directory
+- Jika project ada di subfolder, set **Root Directory** ke `FactionWebManager`
+- Jika project di root, biarkan kosong
+
+### 4. Redeploy setelah perubahan
+- Setelah mengubah settings, klik **"Redeploy"** di dashboard Vercel
+- **PENTING:** Uncheck **"Use existing Build Cache"** saat redeploy
+
+### 5. Cek Logs
+- Buka **Deployments** → Pilih deployment terbaru → **"View Function Logs"**
+- Pastikan tidak ada error saat startup
+
 ## Setup Environment Variables di Vercel
 
 **PENTING:** Environment variables HARUS di-set di Vercel sebelum deploy, atau aplikasi akan menggunakan default values.
@@ -15,6 +42,8 @@ Di Vercel Dashboard → Settings → Environment Variables, tambahkan variables 
 | `DB_USER` | `u143_8Iv5ZNvRLS` | ✅ Production (wajib) |
 | `DB_PASSWORD` | `uh14Qyd.I.pP@Frog^yLy7kR` | ✅ Production (wajib) |
 | `DB_NAME` | `s143_db_unturned` | ✅ Production (wajib) |
+
+**⚠️ PENTING:** Jangan set `PORT` di Vercel! Vercel akan otomatis set PORT untuk serverless functions.
 
 ### Langkah-langkah Input di Vercel:
 

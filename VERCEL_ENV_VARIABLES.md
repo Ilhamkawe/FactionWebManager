@@ -6,13 +6,16 @@ Di Vercel Dashboard → Settings → Environment Variables, tambahkan variables 
 
 ### Production Environment Variables
 
-| Key | Value | Description |
-|-----|-------|-------------|
-| `DB_HOST` | `49.128.184.34` | Database host IP/domain |
-| `DB_PORT` | `3406` | Database port |
-| `DB_USER` | `u143_8Iv5ZNvRLS` | Database username |
-| `DB_PASSWORD` | `uh14Qyd.I.pP@Frog^yLy7kR` | Database password |
-| `DB_NAME` | `s143_db_unturned` | Database name |
+| Key | Value | Description | Required |
+|-----|-------|-------------|----------|
+| `DB_HOST` | `49.128.184.34` | Database host IP/domain | ✅ Yes |
+| `DB_PORT` | `3406` | Database port | ✅ Yes |
+| `DB_USER` | `u143_8Iv5ZNvRLS` | Database username | ✅ Yes |
+| `DB_PASSWORD` | `uh14Qyd.I.pP@Frog^yLy7kR` | Database password | ✅ Yes |
+| `DB_NAME` | `s143_db_unturned` | Database name | ✅ Yes |
+| `PORT` | _(tidak perlu)_ | Server port - **Vercel set otomatis** | ❌ No |
+
+**⚠️ PENTING:** Jangan set `PORT` di Vercel! Vercel akan otomatis set PORT untuk serverless functions.
 
 ## Cara Input di Vercel
 
