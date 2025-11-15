@@ -12,189 +12,35 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static('public'));
 
-// Database configuration
-// Priority: Environment variables > config.js > defaults
-let pool;
-try {
-    // Debug: Log all environment variables (for troubleshooting)
-    console.log('🔍 Environment variables check:');
-    console.log(`  DB_HOST: ${process.env.DB_HOST ? '✅ Set' : '❌ Not set'}`);
-    console.log(`  DB_PORT: ${process.env.DB_PORT ? '✅ Set' : '❌ Not set'}`);
-    console.log(`  DB_USER: ${process.env.DB_USER ? '✅ Set' : '❌ Not set'}`);
-    console.log(`  DB_PASSWORD: ${process.env.DB_PASSWORD ? '✅ Set (hidden)' : '❌ Not set'}`);
-    console.log(`  DB_NAME: ${process.env.DB_NAME ? '✅ Set' : '❌ Not set'}`);
-    console.log(`  NODE_ENV: ${process.env.NODE_ENV || 'not set'}`);
-    console.log(`  VERCEL: ${process.env.VERCEL ? '✅ Yes' : '❌ No'}`);
-    
-    let config;
-    
-    // PRIORITY 1: Use environment variables if available (for Vercel/production)
-    if (process.env.DB_HOST && process.env.DB_USER && process.env.DB_NAME) {
-        console.log('✅ Using environment variables for database configuration');
-        config = {
-            database: {
-                host: process.env.DB_HOST,
-                port: parseInt(process.env.DB_PORT) || 3306,
-                user: process.env.DB_USER,
-                password: process.env.DB_PASSWORD || '',
-                database: process.env.DB_NAME
-            }
-        };
-    } else {
-        // PRIORITY 2: Try to load from config.js (for local development)
-        try {
-            config = require('./config.js');
-            console.log('✅ Loaded config from config.js');
-            
-            // Override with environment variables if they exist (even if config.js exists)
-            if (process.env.DB_HOST) {
-                console.log(`  Overriding host with DB_HOST: ${process.env.DB_HOST}`);
-                config.database.host = process.env.DB_HOST;
-            }
-            if (process.env.DB_PORT) {
-                console.log(`  Overriding port with DB_PORT: ${process.env.DB_PORT}`);
-                config.database.port = parseInt(process.env.DB_PORT);
-            }
-            if (process.env.DB_USER) {
-                console.log(`  Overriding user with DB_USER: ${process.env.DB_USER}`);
-                config.database.user = process.env.DB_USER;
-            }
-            if (process.env.DB_PASSWORD !== undefined) {
-                console.log('  Overriding password with DB_PASSWORD');
-                config.database.password = process.env.DB_PASSWORD;
-            }
-            if (process.env.DB_NAME) {
-                console.log(`  Overriding database with DB_NAME: ${process.env.DB_NAME}`);
-                config.database.database = process.env.DB_NAME;
-            }
-        } catch (e) {
-            // PRIORITY 3: Fallback to defaults (should not happen in production)
-            console.warn('⚠️ config.js not found and no environment variables set, using defaults');
-            console.warn('⚠️ THIS SHOULD NOT HAPPEN IN PRODUCTION! Please set environment variables.');
-            config = {
-                database: {
-                    host: process.env.DB_HOST || 'localhost',
-                    port: parseInt(process.env.DB_PORT) || 3306,
-                    user: process.env.DB_USER || 'root',
-                    password: process.env.DB_PASSWORD || '',
-                    database: process.env.DB_NAME || 'db_unturned'
-                }
-            };
-        }
-    }
-    
-    // Validate config
-    if (!config.database) {
-        throw new Error('Database configuration is missing');
-    }
-    
-    if (!config.database.host || !config.database.user || !config.database.database) {
-        throw new Error('Database configuration is incomplete. Please set environment variables (DB_HOST, DB_USER, DB_NAME) or check config.js');
-    }
+// Database connection pool
+// Uses environment variables with fallback to default values (same as QuestWebManager)
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || '49.128.184.34',
+    port: process.env.DB_PORT || 3406,
+    user: process.env.DB_USER || 'u143_8Iv5ZNvRLS',
+    password: process.env.DB_PASSWORD || 'uh14Qyd.I.pP@Frog^yLy7kR',
+    database: process.env.DB_NAME || 's143_db_unturned',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    enableKeepAlive: true,
+    keepAliveInitialDelay: 0,
+    // IMPORTANT: For bigint unsigned, we need to return as string to preserve precision
+    // JavaScript Number can only safely represent integers up to Number.MAX_SAFE_INTEGER (2^53-1)
+    // SteamID (76561198152301292) exceeds this, so we need string representation
+    supportBigNumbers: true,
+    bigNumberStrings: true
+});
 
-    // Log database config (but not password) for debugging
-    console.log('📊 Final database configuration:');
-    console.log(`  Host: ${config.database.host}`);
-    console.log(`  Port: ${config.database.port}`);
-    console.log(`  User: ${config.database.user}`);
-    console.log(`  Database: ${config.database.database}`);
-    console.log(`  Password: ${config.database.password ? '✅ Set (hidden)' : '❌ Not set'}`);
-
-    const poolConfig = {
-        host: config.database.host,
-        port: parseInt(config.database.port) || 3306,
-        user: config.database.user,
-        password: config.database.password || '',
-        database: config.database.database,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
-        enableKeepAlive: true,
-        keepAliveInitialDelay: 0,
-        // IMPORTANT: For bigint unsigned, we need to return as string to preserve precision
-        // JavaScript Number can only safely represent integers up to Number.MAX_SAFE_INTEGER (2^53-1)
-        // SteamID (76561198152301292) exceeds this, so we need string representation
-        supportBigNumbers: true,
-        bigNumberStrings: true
-    };
-    
-    console.log('\n🔌 Connecting to database:');
-    console.log(`   Host: ${poolConfig.host}`);
-    console.log(`   Port: ${poolConfig.port}`);
-    console.log(`   User: ${poolConfig.user}`);
-    console.log(`   Database: ${poolConfig.database}`);
-    console.log(`   Password: ${poolConfig.password ? '***' : '(empty)'}\n`);
-    
-    pool = mysql.createPool(poolConfig);
-    
-    // Store database name for later use
-    pool.config = { connectionConfig: { database: poolConfig.database } };
-
-    console.log('Database connection pool created');
-    
-    // Test database connection and show table info
-    pool.getConnection()
-        .then(async (connection) => {
-            console.log('✅ Database connected successfully');
-            
-            // Check if factions table exists
-            try {
-                const [tables] = await connection.execute(
-                    "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'factions'"
-                );
-                
-                if (tables.length > 0) {
-                    const [factionCount] = await connection.execute('SELECT COUNT(*) as count FROM factions');
-                    console.log(`📊 Factions table exists with ${factionCount[0].count} factions`);
-                } else {
-                    console.warn('⚠️ Factions table does not exist. Please ensure FactionSystem plugin is configured with database.');
-                }
-            } catch (err) {
-                console.error('Error checking tables:', err.message);
-            }
-            
-            connection.release();
-        })
-        .catch(err => {
-            console.error('\n❌ Database connection failed!');
-            console.error('Error message:', err.message);
-            console.error('Error code:', err.code);
-            if (err.errno) {
-                console.error('Error number:', err.errno);
-            }
-            if (err.sqlState) {
-                console.error('SQL State:', err.sqlState);
-            }
-            console.error('\n📝 Troubleshooting:');
-            console.error('1. Check if database server is running and accessible');
-            console.error('2. Verify database credentials in config.js');
-            console.error('3. Check if database name exists');
-            console.error('4. Verify user has proper permissions');
-            console.error('5. Check firewall/network settings');
-            console.error('\nCurrent configuration:');
-            console.error(`   Host: ${poolConfig.host}`);
-            console.error(`   Port: ${poolConfig.port}`);
-            console.error(`   User: ${poolConfig.user}`);
-            console.error(`   Database: ${poolConfig.database}`);
-            console.error(`   Password: ${poolConfig.password ? '*** (set)' : '(empty)'}\n`);
-            
-            // Common error codes and solutions
-            if (err.code === 'ECONNREFUSED') {
-                console.error('💡 Solution: Connection refused. Check if MySQL server is running on the specified host and port.');
-            } else if (err.code === 'ETIMEDOUT') {
-                console.error('💡 Solution: Connection timeout. Check network connectivity and firewall settings.');
-            } else if (err.code === 'ER_ACCESS_DENIED_ERROR') {
-                console.error('💡 Solution: Access denied. Check username and password in config.js');
-            } else if (err.code === 'ER_BAD_DB_ERROR') {
-                console.error('💡 Solution: Database does not exist. Create the database or check the database name in config.js');
-            } else if (err.code === 'ENOTFOUND') {
-                console.error('💡 Solution: Host not found. Check the host address in config.js');
-            }
-        });
-} catch (error) {
-    console.error('Error creating database pool:', error);
-    process.exit(1);
-}
+// Test database connection
+pool.getConnection()
+    .then(connection => {
+        console.log('✅ Database connected successfully');
+        connection.release();
+    })
+    .catch(err => {
+        console.error('❌ Database connection failed:', err.message);
+    });
 
 // Helper function to execute queries
 async function executeQuery(query, params = []) {
@@ -1397,9 +1243,7 @@ app.get('/api/debug/schema', async (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    const host = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
-    console.log(`Faction Web Manager running on ${host}`);
-    console.log(`Health check: ${host}/api/health`);
-    console.log(`Debug schema: ${host}/api/debug/schema`);
+    console.log(`🚀 Faction Web Manager running on http://localhost:${PORT}`);
+    console.log(`📊 Database: ${process.env.DB_NAME || 's143_db_unturned'}`);
 });
 
